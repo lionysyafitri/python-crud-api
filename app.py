@@ -68,18 +68,41 @@ class APIHandler(BaseHTTPRequestHandler):
         self.send_json(200, {"status": "ok"})
 
     def do_GET(self):
+        path = urlparse(self.path).path
 
-        if self.path in ("/", "/health"):
+        if path in ("/", "/health"):
             return self.send_json(200, {
                 "status": "active",
                 "service": "Backend API"
             })
 
-        if self.path == "/messages":
+        if path == "/messages":
             messages = read_messages()
             return self.send_json(200, {
                 "messages": messages,
                 "total": len(messages)
+            })
+
+        if path.startswith("/messages/"):
+            parts = path.strip("/").split("/")
+
+            try:
+                index = int(parts[1])
+            except (ValueError, IndexError):
+                return self.send_json(400, {
+                    "error": "Invalid message ID"
+                })
+
+            messages = read_messages()
+
+            if index < 0 or index >= len(messages):
+                return self.send_json(404, {
+                    "error": "Message not found"
+                })
+            
+            return self.send_json(200, {
+                "id": index,
+                "message": messages[index]
             })
 
         return self.send_json(404, {
