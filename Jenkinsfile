@@ -18,6 +18,13 @@ pipeline {
             }
         }
 
+        stage('Automated Testing') {
+            steps {
+                echo 'Menjalankan automated test di dalam Docker...'
+                sh 'docker run --rm python-crud-api:manual python -m unittest -v test_app.py'
+            }
+        }
+
         stage('Deploy / Run Container') {
             steps {
                 echo 'Menjalankan container Docker...'
